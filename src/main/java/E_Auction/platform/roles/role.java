@@ -1,4 +1,4 @@
-package E_Auction.platform.role;
+package E_Auction.platform.roles;
 
 public enum role
 {

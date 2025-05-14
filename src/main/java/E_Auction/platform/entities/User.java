@@ -1,7 +1,7 @@
 package E_Auction.platform.entities;
 
 
-import E_Auction.platform.role.role;
+import E_Auction.platform.roles.role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
