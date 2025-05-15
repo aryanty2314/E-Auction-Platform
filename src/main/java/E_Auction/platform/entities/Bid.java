@@ -25,6 +25,7 @@ public class Bid
 
     private double amount;
 
+    @Column(nullable = false)
     private LocalDateTime timestamp;
 
     @ManyToOne
@@ -34,4 +35,5 @@ public class Bid
     @ManyToOne
     @JoinColumn(name = "auction_id")
     private Auction auction;
+
 }

@@ -19,7 +19,7 @@ public class Auction
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column()
     private String title;
@@ -30,13 +30,19 @@ public class Auction
 
     private double currentPrice;
 
-    private LocalDateTime endTime;
+    private LocalDateTime lastBidTime;
+
+    private String imageUrl;
+
+    @Builder.Default
+    private boolean active = true;
 
     @ManyToOne
     @JoinColumn(name = "created_by_id")
     private User createdBy;
 
-    @OneToMany(mappedBy = "auction")
+    @OneToMany(mappedBy = "auction",cascade = CascadeType.ALL)
     private List<Bid> bids;
+
 
 }
