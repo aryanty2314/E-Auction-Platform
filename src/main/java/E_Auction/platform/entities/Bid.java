@@ -23,7 +23,7 @@ public class Bid
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private double amount;
+    private Double amount;
 
     @Column(nullable = false)
     private LocalDateTime timestamp;
