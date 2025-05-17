@@ -35,7 +35,7 @@ public class Auction
     private String imageUrl;
 
     @Builder.Default
-    private boolean active = true;
+    private boolean active = false;
 
     @ManyToOne
     @JoinColumn(name = "created_by_id")

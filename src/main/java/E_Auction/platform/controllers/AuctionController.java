@@ -2,7 +2,8 @@ package E_Auction.platform.controllers;
 
 import E_Auction.platform.dto.requests.AuctionRequestDto;
 import E_Auction.platform.dto.response.AuctionResponseDto;
-import E_Auction.platform.services.AuctionService;
+import E_Auction.platform.exceptions.InvalidOperationException;
+import E_Auction.platform.exceptions.ResourceNotFoundException;
 import E_Auction.platform.services.impl.AuctionServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,13 @@ public class AuctionController
     {
        AuctionResponseDto auctionResponseDto = auctionServiceimpl.createAuction(auctionRequestDto);
        return new ResponseEntity<>(auctionResponseDto, HttpStatus.CREATED);
+    }
+
+    @PostMapping(path = "/activate/{id}")
+    public ResponseEntity<String> activateAuction(@PathVariable Long id) throws InvalidOperationException, ResourceNotFoundException {
+
+     auctionServiceimpl.activateAuction(id);
+     return new ResponseEntity<>("Auction is now Live ! ", HttpStatus.OK);
     }
 
 }

@@ -4,6 +4,8 @@ import E_Auction.platform.dto.requests.AuctionRequestDto;
 import E_Auction.platform.dto.response.AuctionResponseDto;
 import E_Auction.platform.entities.Auction;
 import E_Auction.platform.entities.User;
+import E_Auction.platform.exceptions.InvalidOperationException;
+import E_Auction.platform.exceptions.ResourceNotFoundException;
 import E_Auction.platform.mappers.AuctionMapper;
 import E_Auction.platform.repositories.AuctionRepository;
 import E_Auction.platform.repositories.UserRepository;
@@ -69,5 +71,20 @@ public class AuctionServiceImpl implements AuctionService {
             }
         }
 
+    }
+
+    @Override
+    public void activateAuction(Long auctionId) throws ResourceNotFoundException, InvalidOperationException {
+    Auction auction = auctionRepository.findById(auctionId)
+            .orElseThrow(()-> new ResourceNotFoundException("Auction Not Found"));
+
+    if (auction.isActive())
+    {
+        throw new InvalidOperationException("Auction is Live");
+    }
+
+    auction.setActive(true);
+    auction.setLastBidTime(LocalDateTime.now());
+    auctionRepository.save(auction);
     }
 }
