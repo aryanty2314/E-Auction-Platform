@@ -11,6 +11,7 @@ import E_Auction.platform.services.impl.BidServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 
@@ -19,12 +20,14 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/api/v1/bids")
 @RequiredArgsConstructor
+
 public class BidController
 {
 
     private final BidServiceImpl bidService;
 
     @PostMapping()
+    @PreAuthorize("hasAnyRole('ADMIN','BIDDER')")
     public ResponseEntity<BidResponseDto> newBid(@RequestBody BidRequestDto bidRequestDto) throws UserNotFoundException, InvalidBidException, ResourceNotFoundException {
 
         BidResponseDto bidResponseDto = bidService.placeBid(bidRequestDto);
@@ -32,6 +35,7 @@ public class BidController
     }
 
     @GetMapping(path = "/auction/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public ResponseEntity<List<BidResponseDto>> getAllBids(@PathVariable Long id)
     {
 

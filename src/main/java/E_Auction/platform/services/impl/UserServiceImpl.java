@@ -5,6 +5,7 @@ import E_Auction.platform.dto.response.UserResponseDto;
 import E_Auction.platform.entities.User;
 import E_Auction.platform.mappers.UserMapper;
 import E_Auction.platform.repositories.UserRepository;
+import E_Auction.platform.roles.role;
 import E_Auction.platform.services.UserService;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +40,14 @@ public class UserServiceImpl implements UserService
 
         List<User> users = userRepository.findAll();
         return users.stream().map(userMapper::toDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public void saveAdmin(UserRequestDto user)
+    {
+        user.setRole(role.ADMIN);
+        User user1 = userMapper.toEntity(user);
+        userRepository.save(user1);
     }
 
 

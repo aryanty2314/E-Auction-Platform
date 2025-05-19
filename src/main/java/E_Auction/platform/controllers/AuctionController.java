@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class AuctionController
     private final AuctionServiceImpl auctionServiceimpl;
 
     @GetMapping
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<AuctionResponseDto>> getAllAuctions()
     {
       List<AuctionResponseDto> auctions = auctionServiceimpl.getAllAuctions();
@@ -33,6 +35,7 @@ public class AuctionController
     }
 
     @GetMapping(path = "/{id}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<AuctionResponseDto> getAuctionById(@PathVariable Long id)
     {
         AuctionResponseDto auction = auctionServiceimpl.getAuctionById(id);
@@ -40,6 +43,7 @@ public class AuctionController
     }
 
     @PostMapping()
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<AuctionResponseDto> createAuction(@Valid @RequestBody AuctionRequestDto auctionRequestDto)
     {
        AuctionResponseDto auctionResponseDto = auctionServiceimpl.createAuction(auctionRequestDto);
@@ -47,6 +51,7 @@ public class AuctionController
     }
 
     @PostMapping(path = "/activate/{id}")
+    @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
     public ResponseEntity<String> activateAuction(@PathVariable Long id) throws InvalidOperationException, ResourceNotFoundException {
 
      auctionServiceimpl.activateAuction(id);

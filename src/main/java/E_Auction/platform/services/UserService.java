@@ -11,5 +11,6 @@ public interface UserService
 
     UserResponseDto createUser(UserRequestDto userRequestDto);
     List<UserResponseDto> getUsers();
+    void saveAdmin(UserRequestDto user);
 
 }

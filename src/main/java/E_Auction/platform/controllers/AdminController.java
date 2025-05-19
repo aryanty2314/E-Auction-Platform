@@ -1,0 +1,42 @@
+package E_Auction.platform.controllers;
+
+import E_Auction.platform.dto.requests.UserRequestDto;
+import E_Auction.platform.dto.response.UserResponseDto;
+import E_Auction.platform.entities.User;
+import E_Auction.platform.services.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/admin")
+@RequiredArgsConstructor
+public class AdminController
+{
+
+    private final UserService userService;
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserResponseDto>> allUsers() {
+        List<UserResponseDto> users = userService.getUsers();
+        if (users.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(users, HttpStatus.OK);
+    }
+
+
+    @PostMapping()
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponseDto> createAdmin(@RequestBody UserRequestDto user)
+    {
+        userService.saveAdmin(user);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+
+    }
+}
