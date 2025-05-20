@@ -2,6 +2,7 @@ package E_Auction.platform.security.utils;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +18,16 @@ public class JwtUtils
     @Value("${jwt.secret}")
     private String secret_key;
     private final Long expiration_time= 86400000L;
-    private Key key = Keys.hmacShaKeyFor(secret_key.getBytes());
+
+    // Remove initialization here
+    private Key key;
+
+    // Add a PostConstruct method to initialize the key after properties are set
+    @PostConstruct
+    public void init() {
+        this.key = Keys.hmacShaKeyFor(secret_key.getBytes());
+    }
+
 
     public String generateToken(String email,String role)
     {

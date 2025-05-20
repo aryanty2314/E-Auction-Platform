@@ -27,7 +27,7 @@ public class BidController
     private final BidServiceImpl bidService;
 
     @PostMapping()
-    @PreAuthorize("hasAnyRole('ADMIN','BIDDER')")
+    @PreAuthorize("hasAnyRole('ADMIN','BIDDER','SELLER')")
     public ResponseEntity<BidResponseDto> newBid(@RequestBody BidRequestDto bidRequestDto) throws UserNotFoundException, InvalidBidException, ResourceNotFoundException {
 
         BidResponseDto bidResponseDto = bidService.placeBid(bidRequestDto);

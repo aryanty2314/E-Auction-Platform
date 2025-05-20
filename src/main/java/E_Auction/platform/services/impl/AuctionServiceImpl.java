@@ -11,6 +11,7 @@ import E_Auction.platform.repositories.AuctionRepository;
 import E_Auction.platform.repositories.UserRepository;
 import E_Auction.platform.services.AuctionService;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -27,40 +28,42 @@ public class AuctionServiceImpl implements AuctionService {
     private final AuctionMapper auctionMapper;
     private final UserRepository userRepository;
 
-
     @Override
-    public AuctionResponseDto createAuction(AuctionRequestDto auctionRequestDto) {
-        User user = userRepository.findById(auctionRequestDto.getCreatedById())
-                .orElseThrow(() -> new RuntimeException("User Not Found"));
+    @SneakyThrows
+    public AuctionResponseDto createAuction(AuctionRequestDto dto) {
+        User user = userRepository.findById(dto.getCreatedById())
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
 
-        Auction auction = auctionMapper.toEntity(auctionRequestDto);
-        auction.setStartPrice(auctionRequestDto.getStartPrice());
+        Auction auction = auctionMapper.toEntity(dto);
         auction.setCreatedBy(user);
-        auction.setTitle(auctionRequestDto.getTitle());
-        auction.setDescription(auctionRequestDto.getDescription());
+        auction.setTitle(dto.getTitle());
+        auction.setDescription(dto.getDescription());
+        auction.setStartPrice(dto.getStartPrice());
+        auction.setCurrentPrice(dto.getStartPrice());
         auction.setLastBidTime(LocalDateTime.now());
-        auction.setActive(true);
-        Auction saved = auctionRepository.save(auction);
+        auction.setActive(false); // Default inactive
 
-        return auctionMapper.toDto(saved);
+        return auctionMapper.toDto(auctionRepository.save(auction));
     }
 
     @Override
     public List<AuctionResponseDto> getAllAuctions() {
         return auctionRepository.findByActiveTrue()
-                .stream().map(auctionMapper::toDto).
-                collect(Collectors.toList());
+                .stream()
+                .map(auctionMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
+    @SneakyThrows
     public AuctionResponseDto getAuctionById(Long id) {
         Auction auction = auctionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Auction Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Auction Not Found"));
         return auctionMapper.toDto(auction);
     }
 
     @Override
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 60000) // Every 1 min
     public void endInactiveAuctions() {
         List<Auction> activeAuctions = auctionRepository.findByActiveTrue();
         for (Auction auction : activeAuctions) {
@@ -70,21 +73,20 @@ public class AuctionServiceImpl implements AuctionService {
                 auctionRepository.save(auction);
             }
         }
-
     }
 
     @Override
-    public void activateAuction(Long auctionId) throws ResourceNotFoundException, InvalidOperationException {
-    Auction auction = auctionRepository.findById(auctionId)
-            .orElseThrow(()-> new ResourceNotFoundException("Auction Not Found"));
+    @SneakyThrows
+    public void activateAuction(Long auctionId) {
+        Auction auction = auctionRepository.findById(auctionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Auction Not Found"));
 
-    if (auction.isActive())
-    {
-        throw new InvalidOperationException("Auction is Live");
-    }
+        if (auction.isActive()) {
+            throw new InvalidOperationException("Auction is already live");
+        }
 
-    auction.setActive(true);
-    auction.setLastBidTime(LocalDateTime.now());
-    auctionRepository.save(auction);
+        auction.setActive(true);
+        auction.setLastBidTime(LocalDateTime.now());
+        auctionRepository.save(auction);
     }
 }

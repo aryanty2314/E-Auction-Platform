@@ -6,6 +6,7 @@ import E_Auction.platform.entities.Auction;
 import E_Auction.platform.entities.Bid;
 import E_Auction.platform.entities.User;
 import E_Auction.platform.exceptions.InvalidBidException;
+import E_Auction.platform.exceptions.InvalidOperationException;
 import E_Auction.platform.exceptions.ResourceNotFoundException;
 import E_Auction.platform.exceptions.UserNotFoundException;
 import E_Auction.platform.mappers.BidMapper;
@@ -14,6 +15,7 @@ import E_Auction.platform.repositories.BidRepository;
 import E_Auction.platform.repositories.UserRepository;
 import E_Auction.platform.services.BidService;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,25 +31,23 @@ public class BidServiceImpl implements BidService {
     private final UserRepository userRepository;
     private final BidMapper bidMapper;
 
-
     @Override
-
-    public BidResponseDto placeBid(BidRequestDto bidRequestDto) throws UserNotFoundException, InvalidBidException, ResourceNotFoundException {
+    @SneakyThrows
+    public BidResponseDto placeBid(BidRequestDto bidRequestDto) {
 
         Auction auction = auctionRepository.findById(bidRequestDto.getAuctionId())
-                .orElseThrow(() -> new RuntimeException("Auction not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Auction not found"));
 
         if (!auction.isActive()) {
-            throw new ResourceNotFoundException("Auction not found");
+            throw new InvalidOperationException("Auction is not active");
         }
 
         if (bidRequestDto.getAmount() <= auction.getCurrentPrice()) {
-            throw new InvalidBidException("Bid is Invalid");
+            throw new InvalidBidException("Bid must be higher than current price");
         }
 
         User user = userRepository.findById(bidRequestDto.getUserId())
-                .orElseThrow(() -> new UserNotFoundException("User Not Found !! "));
-
+                .orElseThrow(() -> new UserNotFoundException("User Not Found"));
 
         Bid bid = bidMapper.toEntity(bidRequestDto);
         bid.setTimestamp(LocalDateTime.now());
@@ -64,10 +64,10 @@ public class BidServiceImpl implements BidService {
     }
 
     @Override
-    public List<BidResponseDto> getBidsForAuction(Long auctionId)
-    {
+    public List<BidResponseDto> getBidsForAuction(Long auctionId) {
         return bidRepository.findByAuctionIdOrderByTimestampDesc(auctionId)
-                .stream().map(bidMapper::toDto)
+                .stream()
+                .map(bidMapper::toDto)
                 .collect(Collectors.toList());
     }
 }

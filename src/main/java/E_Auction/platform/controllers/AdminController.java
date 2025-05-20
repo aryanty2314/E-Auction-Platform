@@ -25,9 +25,9 @@ public class AdminController
     public ResponseEntity<List<UserResponseDto>> allUsers() {
         List<UserResponseDto> users = userService.getUsers();
         if (users.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return ResponseEntity.noContent().build();
         }
-        return new ResponseEntity<>(users, HttpStatus.OK);
+        return ResponseEntity.ok(users);
     }
 
 
@@ -35,8 +35,8 @@ public class AdminController
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDto> createAdmin(@RequestBody UserRequestDto user)
     {
-        userService.saveAdmin(user);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+       UserResponseDto newAdmin = userService.saveAdmin(user);
+        return new ResponseEntity<>(newAdmin,HttpStatus.CREATED);
 
     }
 }
