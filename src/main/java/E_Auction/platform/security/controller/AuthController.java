@@ -1,17 +1,21 @@
 package E_Auction.platform.security.controller;
 
+import E_Auction.platform.entities.RefreshToken;
+import E_Auction.platform.entities.User;
+import E_Auction.platform.exceptions.UserNotFoundException;
+import E_Auction.platform.repositories.UserRepository;
 import E_Auction.platform.security.request.LoginRequest;
 import E_Auction.platform.security.request.RegisterRequest;
+import E_Auction.platform.security.request.TokenRefreshRequest;
 import E_Auction.platform.security.response.AuthResponse;
 import E_Auction.platform.security.service.AuthService;
+import E_Auction.platform.security.service.RefreshTokenService;
+import E_Auction.platform.security.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -20,6 +24,9 @@ public class AuthController
 {
 
     private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
+    private final JwtUtils jwtUtils;
+    private final UserRepository userRepository;
 
     @PostMapping(path = "/register")
     @SneakyThrows
@@ -35,6 +42,37 @@ public class AuthController
     {
         AuthResponse authResponse = authService.login(request);
         return new ResponseEntity<>(authResponse, HttpStatus.OK);
+    }
+
+    @PostMapping(path = "/refresh")
+    @SneakyThrows
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody TokenRefreshRequest request)
+    {
+        RefreshToken refreshToken = refreshTokenService.verifyToken(request.getRefreshToken());
+
+        User user = refreshToken.getUser();
+
+        String newAccessToken = jwtUtils.generateToken(user.getEmail(), user.getRole().toString());
+
+        return ResponseEntity.ok(
+                AuthResponse.builder()
+                        .token(newAccessToken)
+                        .refreshToken(refreshToken.getToken())
+                        .username(user.getUsername())
+                        .role(user.getRole())
+                        .build()
+        );
+    }
+
+    @PostMapping(path = "/logout")
+    @SneakyThrows
+    public ResponseEntity<String> logout(@RequestBody LoginRequest request)
+    {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(()-> new UserNotFoundException("User Not Found"));
+
+        refreshTokenService.deleteToken(user);
+     return ResponseEntity.ok("User Logged Out Successfully");
     }
 
 }

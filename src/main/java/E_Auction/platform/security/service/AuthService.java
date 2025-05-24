@@ -27,7 +27,7 @@ public class AuthService
     private final JwtUtils jwtUtils;
     private final AuthenticationManager authenticationManager;
     private final UserMapper userMapper;
-
+    private final RefreshTokenService refreshTokenService;
 
 
     public AuthResponse register(RegisterRequest register) throws InvalidOperationException
@@ -49,16 +49,19 @@ public class AuthService
                 .build();
 
         User savedUser = userRepository.save(user);
-        String jwtToken = jwtUtils.generateToken(user.getEmail(), user.getRole().toString());
+        String jwtAccessToken = jwtUtils.generateToken(user.getEmail(), user.getRole().toString());
+        String jwtRefreshToken = refreshTokenService.createToken(user).getToken();
 
         return AuthResponse.builder()
-                .token(jwtToken)
+                .token(jwtAccessToken)
+                .refreshToken(jwtRefreshToken)
                 .username(savedUser.getUsername())
                 .role(savedUser.getRole())
                 .build();
     }
 
-    public AuthResponse login(LoginRequest login) throws UserNotFoundException
+    @SneakyThrows
+    public AuthResponse login(LoginRequest login)
     {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -70,10 +73,12 @@ public class AuthService
         User user = userRepository.findByEmail(login.getEmail())
                 .orElseThrow(() -> new UserNotFoundException("Unable to find the user"));
 
-        String jwtToken = jwtUtils.generateToken(user.getEmail(), user.getRole().toString());
+        String jwtAccessToken = jwtUtils.generateToken(user.getEmail(), user.getRole().toString());
+        String jwtRefreshToken = refreshTokenService.createToken(user).getToken();
 
         return AuthResponse.builder()
-                .token(jwtToken)
+                .token(jwtAccessToken)
+                .refreshToken(jwtRefreshToken)
                 .username(user.getUsername())
                 .role(user.getRole())
                 .build();
