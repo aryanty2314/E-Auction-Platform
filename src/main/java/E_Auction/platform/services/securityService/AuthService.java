@@ -1,4 +1,4 @@
-package E_Auction.platform.security.service;
+package E_Auction.platform.services.securityService;
 
 import E_Auction.platform.entities.User;
 import E_Auction.platform.exceptions.InvalidOperationException;
@@ -6,10 +6,10 @@ import E_Auction.platform.exceptions.UserNotFoundException;
 import E_Auction.platform.mappers.UserMapper;
 import E_Auction.platform.repositories.UserRepository;
 import E_Auction.platform.roles.role;
-import E_Auction.platform.security.request.LoginRequest;
-import E_Auction.platform.security.request.RegisterRequest;
-import E_Auction.platform.security.response.AuthResponse;
-import E_Auction.platform.security.utils.JwtUtils;
+import E_Auction.platform.dto.securityRequest.LoginRequest;
+import E_Auction.platform.dto.securityRequest.RegisterRequest;
+import E_Auction.platform.dto.securityResponse.AuthResponse;
+import E_Auction.platform.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.security.authentication.AuthenticationManager;

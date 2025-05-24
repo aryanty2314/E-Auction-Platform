@@ -1,4 +1,4 @@
-package E_Auction.platform.security.request;
+package E_Auction.platform.dto.securityRequest;
 
 import lombok.Data;
 

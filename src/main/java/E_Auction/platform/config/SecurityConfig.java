@@ -1,9 +1,8 @@
-package E_Auction.platform.security.config;
+package E_Auction.platform.config;
 
-import E_Auction.platform.security.filter.JwtAuthFilter;
+import E_Auction.platform.filter.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;

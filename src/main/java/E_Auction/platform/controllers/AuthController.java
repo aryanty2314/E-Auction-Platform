@@ -1,16 +1,16 @@
-package E_Auction.platform.security.controller;
+package E_Auction.platform.controllers;
 
 import E_Auction.platform.entities.RefreshToken;
 import E_Auction.platform.entities.User;
 import E_Auction.platform.exceptions.UserNotFoundException;
 import E_Auction.platform.repositories.UserRepository;
-import E_Auction.platform.security.request.LoginRequest;
-import E_Auction.platform.security.request.RegisterRequest;
-import E_Auction.platform.security.request.TokenRefreshRequest;
-import E_Auction.platform.security.response.AuthResponse;
-import E_Auction.platform.security.service.AuthService;
-import E_Auction.platform.security.service.RefreshTokenService;
-import E_Auction.platform.security.utils.JwtUtils;
+import E_Auction.platform.dto.securityRequest.LoginRequest;
+import E_Auction.platform.dto.securityRequest.RegisterRequest;
+import E_Auction.platform.dto.securityRequest.TokenRefreshRequest;
+import E_Auction.platform.dto.securityResponse.AuthResponse;
+import E_Auction.platform.services.securityService.AuthService;
+import E_Auction.platform.services.securityService.RefreshTokenService;
+import E_Auction.platform.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;

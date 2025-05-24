@@ -1,4 +1,4 @@
-package E_Auction.platform.security.response;
+package E_Auction.platform.dto.securityRequest;
 
 import E_Auction.platform.roles.role;
 import lombok.AllArgsConstructor;
@@ -7,13 +7,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
-@Data
 @Builder
+@Data
 @NoArgsConstructor
-public class AuthResponse
+public class RegisterRequest
 {
-private String token;
-private String refreshToken;
-private String username;
-private role role;
+    private String username;
+    private String email;
+    private String password;
+    private role role;
 }

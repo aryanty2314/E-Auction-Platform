@@ -1,7 +1,7 @@
-package E_Auction.platform.security.filter;
+package E_Auction.platform.filter;
 
 import E_Auction.platform.security.UserDetailsServiceImpl;
-import E_Auction.platform.security.utils.JwtUtils;
+import E_Auction.platform.utils.JwtUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

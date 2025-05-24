@@ -1,4 +1,4 @@
-package E_Auction.platform.security.utils;
+package E_Auction.platform.utils;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

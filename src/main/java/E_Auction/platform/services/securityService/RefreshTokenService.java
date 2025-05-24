@@ -1,4 +1,4 @@
-package E_Auction.platform.security.service;
+package E_Auction.platform.services.securityService;
 
 import E_Auction.platform.entities.RefreshToken;
 import E_Auction.platform.entities.User;
