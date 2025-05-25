@@ -26,7 +26,6 @@ public class AuthService
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final AuthenticationManager authenticationManager;
-    private final UserMapper userMapper;
     private final RefreshTokenService refreshTokenService;
 
 

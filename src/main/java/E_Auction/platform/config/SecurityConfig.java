@@ -23,15 +23,14 @@ public class SecurityConfig
 
     private static final String[] PUBLIC_ENDPOINTS = {
             "/api/v1/auth/**",
-            "/api/v1/user/**",
-            "/api/auctions",
-            "/api/auctions/{id}",
+            "/api/v1/auction",
+            "/api/v1/auction/{id}",
             "/swagger-ui/**",
             "/v3/api-docs/**"
     };
 
     private static final String[] SELLER_ENDPOINTS = {
-            "/api/v1/auctions/**"
+            "/api/v1/auction/**"
     };
 
     private static final String[] BIDDER_ENDPOINTS = {
@@ -39,7 +38,8 @@ public class SecurityConfig
     };
 
     private static final String[] ADMIN_ENDPOINTS = {
-            "/api/v1/admin/**"
+            "/api/v1/admin/**",
+            "/api/v1/user"
     };
 
 
