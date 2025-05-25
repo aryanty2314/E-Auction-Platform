@@ -54,6 +54,7 @@ public class JwtUtils
         return (String) extractClaims(token).get("role");
     }
 
+
     public boolean validateToken(String token)
     {
      try {
