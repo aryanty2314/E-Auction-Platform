@@ -1,68 +1,46 @@
+// src/pages/Login.jsx
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, setForm] = useState({ email: '', password: '' });
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post(
-        'http://localhost:8080/api/v1/auth/login',
-        { email, password },
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('role', res.data.role);
-      localStorage.setItem('username', res.data.username);
-      alert('Login Successful');
-      navigate('/auctions');
-    } catch (err) {
-      alert('Invalid credentials');
-    }
-  };
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+const handleLogin = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await axios.post('http://localhost:8080/api/v1/auth/login', form);
+
+    // 🛠️ Token Save Here!
+    localStorage.setItem('token', res.data.token);
+    localStorage.setItem('username', res.data.username);
+    localStorage.setItem('role', res.data.role);
+
+    alert('✅ Login successful!');
+    navigate('/auctions');
+  } catch (err) {
+    alert('❌ Login failed.');
+    console.error(err.response?.data || err);
+  }
+};
 
   return (
-    <div className="flex items-center justify-center w-screen h-screen bg-black">
-      <div className="bg-gray-900 p-8 rounded-xl shadow-lg w-full max-w-sm">
-        <h2 className="text-white text-2xl font-bold mb-6 text-center">🔐 Login</h2>
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="text-gray-300 text-sm block mb-1">Email</label>
-            <input
-              type="email"
-              className="w-full px-4 py-2 bg-gray-800 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label className="text-gray-300 text-sm block mb-1">Password</label>
-            <input
-              type="password"
-              className="w-full px-4 py-2 bg-gray-800 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md transition"
-          >
-            Login
-          </button>
-        </form>
-        
-           <p className="text-center text-sm text-gray-500 mt-4">
-          Don’t have an account?{' '}
-          <a href="/register" className="text-green-400 hover:underline">Register</a>
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center">
+      <form onSubmit={handleLogin} className="bg-white p-8 rounded shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+        <div className="mb-4">
+          <label className="block text-gray-700">Email:</label>
+          <input type="email" name="email" value={form.email} onChange={handleChange} required className="w-full px-3 py-2 border rounded" />
+        </div>
+        <div className="mb-6">
+          <label className="block text-gray-700">Password:</label>
+          <input type="password" name="password" value={form.password} onChange={handleChange} required className="w-full px-3 py-2 border rounded" />
+        </div>
+        <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700">Login</button>
+      </form>
     </div>
   );
 }

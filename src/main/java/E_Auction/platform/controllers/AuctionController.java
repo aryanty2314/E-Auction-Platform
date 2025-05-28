@@ -43,7 +43,7 @@ public class AuctionController
     }
 
     @PostMapping()
-    @PreAuthorize("hasRole('SELLER')")
+    @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
     public ResponseEntity<AuctionResponseDto> createAuction(@Valid @RequestBody AuctionRequestDto auctionRequestDto)
     {
        AuctionResponseDto auctionResponseDto = auctionServiceimpl.createAuction(auctionRequestDto);
