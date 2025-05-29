@@ -22,7 +22,7 @@ public class AuctionController
 
     private final AuctionServiceImpl auctionServiceimpl;
 
-    @GetMapping
+    @GetMapping("/all")
     @PreAuthorize("permitAll()")
     public ResponseEntity<List<AuctionResponseDto>> getAllAuctions()
     {

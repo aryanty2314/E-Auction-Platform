@@ -19,6 +19,8 @@ function Navbar() {
         <button onClick={() => navigate('/auctions')} className="hover:underline transition-all hover:text-gray-200">
           Auctions
         </button>
+        <Link to="/live" className="text-white px-4 py-2 hover:text-yellow-300">Live Bidding</Link>
+
         
         {hasRole('SELLER') && (
           <>

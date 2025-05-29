@@ -13,7 +13,7 @@ function Auctions() {
   useEffect(() => {
     const fetchAuctions = async () => {
       try {
-        const res = await axios.get('http://localhost:8080/api/v1/auction', {
+        const res = await axios.get('http://localhost:8080/api/v1/auction/all', {
           headers: { Authorization: `Bearer ${user?.token}` },
         });
         setAuctions(res.data);

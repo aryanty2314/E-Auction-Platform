@@ -38,7 +38,6 @@ public class BidController
     @PreAuthorize("hasAnyRole('ADMIN','SELLER')")
     public ResponseEntity<List<BidResponseDto>> getAllBids(@PathVariable Long id)
     {
-
         List<BidResponseDto> allBids = bidService.getBidsForAuction(id);
         return new ResponseEntity<>(allBids,HttpStatus.OK);
     }

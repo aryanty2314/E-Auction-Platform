@@ -27,7 +27,8 @@ public class SecurityConfig
             "/api/v1/auction",
             "/api/v1/auction/{id}",
             "/swagger-ui/**",
-            "/v3/api-docs/**"
+            "/v3/api-docs/**",
+            "/ws/**"
     };
 
     private static final String[] SELLER_ENDPOINTS = {

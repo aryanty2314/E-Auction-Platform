@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Import all pages
 import Home from './pages/Home';
@@ -12,56 +13,66 @@ import CreateAuction from './pages/CreateAuction';
 import SellerDashboard from './pages/SellerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import PlaceBid from './pages/PlaceBid';
+import LiveBiddingDashboard from './pages/LiveBiddingDashbBoard';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <Navbar />
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+    <ErrorBoundary>
+      <AuthProvider>
+        <Router>
+          <div className="App">
+            <Navbar />
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
-            {/* Protected routes - require authentication */}
-            <Route path="/auctions" element={
-              <ProtectedRoute>
-                <Auctions />
-              </ProtectedRoute>
-            } />
+              {/* Protected routes - require authentication */}
+              <Route path="/auctions" element={
+                <ProtectedRoute>
+                  <Auctions />
+                </ProtectedRoute>
+              } />
 
-            {/* Seller routes */}
-            <Route path="/create-auction" element={
-              <ProtectedRoute roles={['SELLER', 'ADMIN']}>
-                <CreateAuction />
-              </ProtectedRoute>
-            } />
+              <Route path="/live" element={
+                <ProtectedRoute>
+                  <LiveBiddingDashboard />
+                </ProtectedRoute>
+              } />
 
-            <Route path="/seller" element={
-              <ProtectedRoute roles={['SELLER']}>
-                <SellerDashboard />
-              </ProtectedRoute>
-            } />
+              {/* Bidding route */}
+              <Route path="/auction/:id/bid" element={
+                <ProtectedRoute roles={['BIDDER', 'ADMIN', 'SELLER']}>
+                  <PlaceBid />
+                </ProtectedRoute>
+              } />
 
-            {/* Admin routes */}
-            <Route path="/admin" element={
-              <ProtectedRoute roles={['ADMIN']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
+              {/* Seller routes */}
+              <Route path="/create-auction" element={
+                <ProtectedRoute roles={['SELLER', 'ADMIN']}>
+                  <CreateAuction />
+                </ProtectedRoute>
+              } />
 
-            <Route path="/auction/:id/bid" element={
-              <ProtectedRoute roles={['BIDDER']}>
-                <PlaceBid />
-              </ProtectedRoute>
-            } />
+              <Route path="/seller" element={
+                <ProtectedRoute roles={['SELLER']}>
+                  <SellerDashboard />
+                </ProtectedRoute>
+              } />
 
-          </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
+              {/* Admin routes */}
+              <Route path="/admin" element={
+                <ProtectedRoute roles={['ADMIN']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
+
+            </Routes>
+          </div>
+        </Router>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

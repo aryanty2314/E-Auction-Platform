@@ -19,7 +19,7 @@ function AdminDashboard() {
           axios.get('http://localhost:8080/api/v1/admin/users', {
             headers: { Authorization: `Bearer ${user?.token}` }
           }),
-          axios.get('http://localhost:8080/api/v1/auction', {
+          axios.get('http://localhost:8080/api/v1/auction/all', {
             headers: { Authorization: `Bearer ${user?.token}` }
           })
         ]);
