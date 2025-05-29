@@ -9,7 +9,7 @@ function CreateAuction() {
   const [auction, setAuction] = useState({
     title: '',
     description: '',
-    startPrice: '',
+    startPrice: '', // Should be a number, but input type="number" handles this
     imageUrl: ''
   });
   const [loading, setLoading] = useState(false);
@@ -18,35 +18,52 @@ function CreateAuction() {
   const { toasts, showToast, removeToast } = useToast();
 
   const handleChange = (e) => {
-    setAuction({ ...auction, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setAuction({ 
+      ...auction, 
+      [name]: name === 'startPrice' ? (value === '' ? '' : parseFloat(value)) : value 
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    if (!user?.token) {
+      showToast('Authentication required to create an auction.', 'error');
+      setLoading(false);
+      return;
+    }
+
+    if (auction.startPrice <= 0) {
+      showToast('Starting price must be greater than 0.', 'error');
+      setLoading(false);
+      return;
+    }
     
     try {
+      // The backend should associate this auction with the logged-in seller via the token
       await axios.post('http://localhost:8080/api/v1/auction', auction, {
         headers: {
-          Authorization: `Bearer ${user?.token}`
+          Authorization: `Bearer ${user.token}` // user.token is fine after check
         }
       });
       
       showToast('Auction created successfully!', 'success');
       setTimeout(() => {
-        navigate('/seller');
-      }, 1000);
+        navigate('/seller'); // Navigate to seller dashboard or auctions list
+      }, 1500);
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Failed to create auction. Please try again.';
       showToast(errorMessage, 'error');
-      console.error(err);
+      console.error("Error creating auction:", err.response?.data || err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-gray-900 text-white flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-gray-900 text-white flex items-center justify-center px-4 py-8">
       {toasts.map(toast => (
         <Toast
           key={toast.id}
@@ -63,10 +80,11 @@ function CreateAuction() {
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Auction Title</label>
+            <label htmlFor="title" className="block text-gray-300 text-sm font-medium mb-2">Auction Title</label>
             <input 
+              id="title"
               name="title" 
-              placeholder="Enter auction title" 
+              placeholder="e.g., Vintage Rolex Watch" 
               required 
               value={auction.title} 
               onChange={handleChange}
@@ -76,10 +94,11 @@ function CreateAuction() {
           </div>
           
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Description</label>
+            <label htmlFor="description" className="block text-gray-300 text-sm font-medium mb-2">Description</label>
             <textarea 
+              id="description"
               name="description" 
-              placeholder="Describe your item..." 
+              placeholder="Detailed description of the item, its condition, etc." 
               required 
               value={auction.description} 
               onChange={handleChange}
@@ -90,13 +109,14 @@ function CreateAuction() {
           </div>
           
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Starting Price (₹)</label>
+            <label htmlFor="startPrice" className="block text-gray-300 text-sm font-medium mb-2">Starting Price (₹)</label>
             <input 
+              id="startPrice"
               type="number" 
               name="startPrice" 
-              placeholder="0" 
+              placeholder="e.g., 5000" 
               required 
-              min="1"
+              min="1" // HTML5 validation for minimum value
               value={auction.startPrice} 
               onChange={handleChange}
               disabled={loading}
@@ -105,8 +125,10 @@ function CreateAuction() {
           </div>
           
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Image URL (optional)</label>
+            <label htmlFor="imageUrl" className="block text-gray-300 text-sm font-medium mb-2">Image URL (Optional)</label>
             <input 
+              id="imageUrl"
+              type="url"
               name="imageUrl" 
               placeholder="https://example.com/image.jpg" 
               value={auction.imageUrl} 
@@ -116,10 +138,10 @@ function CreateAuction() {
             />
           </div>
           
-          <div className="flex gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <button 
               type="button"
-              onClick={() => navigate('/seller')}
+              onClick={() => navigate(-1)} // Go back to the previous page
               disabled={loading}
               className="flex-1 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors font-medium disabled:opacity-50"
             >
@@ -128,9 +150,17 @@ function CreateAuction() {
             <button 
               type="submit" 
               disabled={loading}
-              className="flex-1 py-3 bg-green-500 hover:bg-green-600 rounded-lg transition-colors font-medium disabled:opacity-50"
+              className="flex-1 py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-lg transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creating...' : 'Create Auction'}
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Creating...
+                </span>
+              ) : 'Create Auction'}
             </button>
           </div>
         </form>

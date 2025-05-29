@@ -13,7 +13,7 @@ import CreateAuction from './pages/CreateAuction';
 import SellerDashboard from './pages/SellerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import PlaceBid from './pages/PlaceBid';
-import LiveBiddingDashboard from './pages/LiveBiddingDashbBoard';
+import LiveAuctionPage from './pages/LiveAuctionPage';
 
 function App() {
   return (
@@ -35,9 +35,9 @@ function App() {
                 </ProtectedRoute>
               } />
 
-              <Route path="/live" element={
+              <Route path="/live/:id" element={
                 <ProtectedRoute>
-                  <LiveBiddingDashboard />
+                  <LiveAuctionPage />
                 </ProtectedRoute>
               } />
 
@@ -56,7 +56,7 @@ function App() {
               } />
 
               <Route path="/seller" element={
-                <ProtectedRoute roles={['SELLER']}>
+                <ProtectedRoute roles={['SELLER', 'ADMIN']}>
                   <SellerDashboard />
                 </ProtectedRoute>
               } />

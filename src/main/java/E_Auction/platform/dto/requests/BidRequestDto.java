@@ -1,5 +1,6 @@
 package E_Auction.platform.dto.requests;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,5 +15,6 @@ public class BidRequestDto
 
     private Double amount;
     private Long userId;
+    @NotNull
     private Long auctionId;
 }

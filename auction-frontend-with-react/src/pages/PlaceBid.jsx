@@ -1,67 +1,75 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import axios from 'axios'; // Import axios
 import { useAuth } from '../context/AuthContext';
-import Toast from '../components/Toast';
+import Toast from '../components/Toast'; // Assuming this is your custom Toast component
+import { useToast as useAppToast } from '../hooks/useToast'; // To use your useToast hook
 
 function PlaceBid() {
-  const { id } = useParams();
+  const { id: auctionId } = useParams(); // Renamed to auctionId for clarity
   const navigate = useNavigate();
-  const { user, apiClient } = useAuth();
+  const { user } = useAuth(); // Removed apiClient, as it's not provided by AuthContext
   const [auction, setAuction] = useState(null);
   const [amount, setAmount] = useState('');
-  const [toast, setToast] = useState(null);
+  // const [toast, setToast] = useState(null); // Replaced by useAppToast
+  const { toasts, showToast, removeToast } = useAppToast();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchAuction = async () => {
+      if (!user?.token) {
+        showToast('Please log in to view auction details.', 'error');
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
-        const response = await apiClient.get(`/auction/${id}`);
+        const response = await axios.get(`http://localhost:8080/api/v1/auction/${auctionId}`, {
+          headers: { Authorization: `Bearer ${user.token}` }
+        });
         
         if (response.data) {
           setAuction(response.data);
-          // Set minimum bid amount (current price + 1)
           const minBid = (response.data.currentPrice || response.data.startPrice) + 1;
-          setAmount(minBid.toString());
+          setAmount(minBid > 0 ? minBid.toString() : "1"); // Ensure minBid is at least 1
         } else {
-          setToast({ type: 'error', message: 'Auction not found' });
+          showToast('Auction not found', 'error');
         }
       } catch (error) {
         console.error('Error fetching auction:', error);
-        setToast({ 
-          type: 'error', 
-          message: 'Failed to load auction details. Please try again.' 
-        });
+        showToast(
+          error.response?.data?.message || 'Failed to load auction details. Please try again.',
+          'error'
+        );
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) {
+    if (auctionId) {
       fetchAuction();
     }
-  }, [id, apiClient]);
+  }, [auctionId, user?.token, showToast]); // Added showToast to dependencies
 
   const handleBid = async (e) => {
     e.preventDefault();
     
-    if (!auction) return;
+    if (!auction || !user?.token) {
+      showToast('Cannot place bid. Auction or user data missing.', 'error');
+      return;
+    }
     
     const bidAmount = parseFloat(amount);
     const currentPrice = auction.currentPrice || auction.startPrice;
     
-    // Validation
-    if (bidAmount <= currentPrice) {
-      setToast({ 
-        type: 'error', 
-        message: `Bid must be higher than current price of ₹${currentPrice}` 
-      });
+    if (isNaN(bidAmount) || bidAmount <= 0) {
+      showToast('Please enter a valid bid amount.', 'error');
       return;
     }
 
-    if (!user?.id) {
-      setToast({ type: 'error', message: 'User information not available' });
+    if (bidAmount <= currentPrice) {
+      showToast(`Bid must be higher than current price of ₹${currentPrice}`, 'error');
       return;
     }
 
@@ -69,40 +77,37 @@ function PlaceBid() {
       setSubmitting(true);
       const bidRequest = {
         amount: bidAmount,
-        userId: user.id,
-        auctionId: parseInt(id)
+        auctionId: parseInt(auctionId)
+        // userId is typically inferred by the backend from the JWT token
       };
 
-      await apiClient.post('/bids', bidRequest);
+      await axios.post('http://localhost:8080/api/v1/bids', bidRequest, {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
 
-      setToast({ type: 'success', message: '✅ Bid placed successfully!' });
+      showToast('✅ Bid placed successfully!', 'success');
       
-      // Update local auction state
       setAuction(prev => ({ ...prev, currentPrice: bidAmount }));
-      
-      // Reset form and set new minimum
       setAmount((bidAmount + 1).toString());
       
-      // Navigate back after successful bid
       setTimeout(() => {
-        navigate('/live');
-      }, 2000);
+        navigate(`/live/${auctionId}`); // Navigate to the specific live auction page
+      }, 1500);
       
     } catch (error) {
       console.error('Error placing bid:', error);
-      
       const errorMessage = error.response?.data?.message || 
                           error.response?.data?.error || 
                           'Failed to place bid. Please try again.';
-      
-      setToast({ type: 'error', message: `❌ ${errorMessage}` });
+      showToast(`❌ ${errorMessage}`, 'error');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleGoBack = () => {
-    navigate('/live');
+    // Navigate to the specific live auction page or a general auctions page
+    navigate(auction ? `/live/${auction.id}` : '/auctions');
   };
 
   if (loading) {
@@ -118,7 +123,15 @@ function PlaceBid() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white p-6">
-      <div className="bg-gray-900 p-8 rounded-lg shadow-xl max-w-md w-full">
+      {toasts.map(t => ( // Display toasts from useAppToast
+        <Toast
+          key={t.id}
+          message={t.message}
+          type={t.type}
+          onClose={() => removeToast(t.id)}
+        />
+      ))}
+      <div className="bg-gray-900 p-8 rounded-lg shadow-xl max-w-md w-full border border-gray-700">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold">💰 Place Your Bid</h2>
           <button
@@ -137,23 +150,23 @@ function PlaceBid() {
                 alt={auction.title}
                 className="w-full h-48 object-cover rounded mb-4"
                 onError={(e) => {
-                  e.target.style.display = 'none';
+                  e.target.src = 'https://via.placeholder.com/400x200?text=Image+Not+Available'; // Fallback image
                 }}
               />
             )}
             
             <div className="space-y-3 mb-6">
               <p><strong>Title:</strong> {auction.title}</p>
-              <p><strong>Description:</strong> {auction.description}</p>
+              <p className="line-clamp-3"><strong>Description:</strong> {auction.description}</p>
               <p><strong>Starting Price:</strong> ₹{auction.startPrice}</p>
-              <p className="text-green-400">
+              <p className="text-green-400 font-semibold">
                 <strong>Current Price:</strong> ₹{auction.currentPrice || auction.startPrice}
               </p>
-              {auction.endTime && (
+              {auction.endTime && ( // Assuming endTime might be available
                 <p><strong>Auction Ends:</strong> {new Date(auction.endTime).toLocaleString()}</p>
               )}
               <p className={`${auction.active ? 'text-green-400' : 'text-red-400'}`}>
-                <strong>Status:</strong> {auction.active ? 'Active' : 'Inactive'}
+                <strong>Status:</strong> {auction.active ? 'Active' : 'Inactive/Ended'}
               </p>
             </div>
 
@@ -161,7 +174,7 @@ function PlaceBid() {
               <form onSubmit={handleBid} className="space-y-4">
                 <div>
                   <label htmlFor="bidAmount" className="block text-sm font-medium mb-2">
-                    Your Bid Amount (minimum: ₹{(auction.currentPrice || auction.startPrice) + 1})
+                    Your Bid (Minimum: ₹{(auction.currentPrice || auction.startPrice) + 1})
                   </label>
                   <input
                     id="bidAmount"
@@ -169,7 +182,7 @@ function PlaceBid() {
                     step="1"
                     min={(auction.currentPrice || auction.startPrice) + 1}
                     placeholder="Enter bid amount"
-                    className="w-full px-4 py-2 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-200 border border-gray-400"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     required
@@ -179,29 +192,29 @@ function PlaceBid() {
                 
                 <button 
                   type="submit" 
-                  disabled={submitting}
-                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-2 rounded-md transition-colors"
+                  disabled={submitting || !auction.active}
+                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-md transition-colors font-semibold"
                 >
                   {submitting ? 'Placing Bid...' : 'Submit Bid'}
                 </button>
               </form>
             ) : (
               <div className="text-center">
-                <p className="text-red-400 mb-4">This auction is no longer active</p>
+                <p className="text-red-400 mb-4">This auction is no longer active for bidding.</p>
                 <button
                   onClick={handleGoBack}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md"
                 >
-                  Back to Auctions
+                  Back to Auction
                 </button>
               </div>
             )}
           </>
         ) : (
           <div className="text-center">
-            <p className="text-red-400 mb-4">Auction not found or failed to load</p>
+            <p className="text-red-400 mb-4">Auction details could not be loaded.</p>
             <button
-              onClick={handleGoBack}
+              onClick={() => navigate('/auctions')} // General fallback
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md"
             >
               Back to Auctions
@@ -209,14 +222,6 @@ function PlaceBid() {
           </div>
         )}
       </div>
-
-      {toast && (
-        <Toast
-          type={toast.type}
-          message={toast.message}
-          onClose={() => setToast(null)}
-        />
-      )}
     </div>
   );
 }
