@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class AdminController
 {
 
@@ -22,6 +24,7 @@ public class AdminController
 
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
+
     public ResponseEntity<List<UserResponseDto>> allUsers() {
         List<UserResponseDto> users = userService.getUsers();
         if (users.isEmpty()) {

@@ -1,6 +1,9 @@
-// src/App.jsx
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
+
+// Import all pages
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -8,25 +11,57 @@ import Auctions from './pages/Auctions';
 import CreateAuction from './pages/CreateAuction';
 import SellerDashboard from './pages/SellerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import PlaceBid from './pages/PlaceBid';
 
 function App() {
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
-
   return (
-    <Router>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={!token ? <Login /> : <Navigate to="/auctions" />} />
-        <Route path="/register" element={!token ? <Register /> : <Navigate to="/auctions" />} />
-        <Route path="/auctions" element={token ? <Auctions /> : <Navigate to="/login" />} />
-        <Route path="/create-auction" element={token && role === 'SELLER' ? <CreateAuction /> : <Navigate to="/login" />} />
-        <Route path="/seller" element={token && role === 'SELLER' ? <SellerDashboard /> : <Navigate to="/login" />} />
-        <Route path="/admin" element={token && role === 'ADMIN' ? <AdminDashboard /> : <Navigate to="/login" />} />
-        <Route path="*" element={<h1 className="text-center text-white mt-10">404 Page Not Found</h1>} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <Navbar />
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+
+            {/* Protected routes - require authentication */}
+            <Route path="/auctions" element={
+              <ProtectedRoute>
+                <Auctions />
+              </ProtectedRoute>
+            } />
+
+            {/* Seller routes */}
+            <Route path="/create-auction" element={
+              <ProtectedRoute roles={['SELLER', 'ADMIN']}>
+                <CreateAuction />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/seller" element={
+              <ProtectedRoute roles={['SELLER']}>
+                <SellerDashboard />
+              </ProtectedRoute>
+            } />
+
+            {/* Admin routes */}
+            <Route path="/admin" element={
+              <ProtectedRoute roles={['ADMIN']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/auction/:id/bid" element={
+              <ProtectedRoute roles={['BIDDER']}>
+                <PlaceBid />
+              </ProtectedRoute>
+            } />
+
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 

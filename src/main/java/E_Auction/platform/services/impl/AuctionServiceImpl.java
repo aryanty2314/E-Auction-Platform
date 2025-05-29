@@ -48,7 +48,7 @@ public class AuctionServiceImpl implements AuctionService {
 
     @Override
     public List<AuctionResponseDto> getAllAuctions() {
-        return auctionRepository.findByActiveTrue()
+        return auctionRepository.findAll()
                 .stream()
                 .map(auctionMapper::toDto)
                 .collect(Collectors.toList());
