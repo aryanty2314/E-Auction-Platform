@@ -30,11 +30,14 @@ public class AuctionServiceImpl implements AuctionService {
 
     @Override
     @SneakyThrows
-    public AuctionResponseDto createAuction(AuctionRequestDto dto) {
+    public AuctionResponseDto createAuction(AuctionRequestDto dto)
+    {
+        System.out.println(dto.getCreatedById());
         User user = userRepository.findById(dto.getCreatedById())
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
 
         Auction auction = auctionMapper.toEntity(dto);
+
         auction.setCreatedBy(user);
         auction.setTitle(dto.getTitle());
         auction.setDescription(dto.getDescription());
