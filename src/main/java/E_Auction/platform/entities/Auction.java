@@ -1,6 +1,7 @@
 package E_Auction.platform.entities;
 
 
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -44,5 +45,7 @@ public class Auction
     @OneToMany(mappedBy = "auction",cascade = CascadeType.ALL)
     private List<Bid> bids;
 
+    @Builder.Default
+    private boolean completed = false;
 
 }

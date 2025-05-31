@@ -14,6 +14,5 @@ AuctionResponseDto createAuction(AuctionRequestDto auctionRequestDto);
 List<AuctionResponseDto> getAllAuctions();
 AuctionResponseDto getAuctionById(Long id);
 void endInactiveAuctions();
-
 void activateAuction(Long auctionId) throws ResourceNotFoundException, InvalidOperationException;
 }

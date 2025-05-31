@@ -5,6 +5,8 @@ import E_Auction.platform.dto.response.AuctionResponseDto;
 import E_Auction.platform.exceptions.InvalidOperationException;
 import E_Auction.platform.exceptions.ResourceNotFoundException;
 import E_Auction.platform.services.impl.AuctionServiceImpl;
+import E_Auction.platform.utils.JwtUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,17 +24,18 @@ public class AuctionController
 {
 
     private final AuctionServiceImpl auctionServiceimpl;
+    private final JwtUtils jwtUtils;
 
     @GetMapping("/all")
     @PreAuthorize("permitAll()")
     public ResponseEntity<List<AuctionResponseDto>> getAllAuctions()
     {
-      List<AuctionResponseDto> auctions = auctionServiceimpl.getAllAuctions();
-      if (auctions.isEmpty())
-      {
-          return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-      }
-      return new ResponseEntity<>(auctions, HttpStatus.OK);
+        List<AuctionResponseDto> auctions = auctionServiceimpl.getAllAuctions();
+        if (auctions.isEmpty())
+        {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(auctions, HttpStatus.OK);
     }
 
     @GetMapping(path = "/{id}")
@@ -45,18 +48,45 @@ public class AuctionController
 
     @PostMapping()
     @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
-    public ResponseEntity<AuctionResponseDto> createAuction(@Valid @RequestBody AuctionRequestDto auctionRequestDto)
+    public ResponseEntity<AuctionResponseDto> createAuction(
+            @Valid @RequestBody AuctionRequestDto auctionRequestDto,
+            HttpServletRequest request)
     {
-       AuctionResponseDto auctionResponseDto = auctionServiceimpl.createAuction(auctionRequestDto);
-       return new ResponseEntity<>(auctionResponseDto, HttpStatus.CREATED);
+        try {
+            // Extract user ID from JWT token
+            String token = extractTokenFromRequest(request);
+            if (token == null) {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+
+            Long userId = jwtUtils.extractId(token);
+            if (userId == null) {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+
+            // Set the createdById from the authenticated user
+            auctionRequestDto.setCreatedById(userId);
+
+            AuctionResponseDto auctionResponseDto = auctionServiceimpl.createAuction(auctionRequestDto);
+            return new ResponseEntity<>(auctionResponseDto, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping(path = "/activate/{id}")
     @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
     public ResponseEntity<String> activateAuction(@PathVariable Long id) throws InvalidOperationException, ResourceNotFoundException {
 
-     auctionServiceimpl.activateAuction(id);
-     return new ResponseEntity<>("Auction is now Live ! ", HttpStatus.OK);
+        auctionServiceimpl.activateAuction(id);
+        return new ResponseEntity<>("Auction is now Live ! ", HttpStatus.OK);
     }
 
+    private String extractTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
+    }
 }

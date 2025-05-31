@@ -32,7 +32,11 @@ public class AuctionServiceImpl implements AuctionService {
     @SneakyThrows
     public AuctionResponseDto createAuction(AuctionRequestDto dto)
     {
-        System.out.println(dto.getCreatedById());
+        if (dto.getCreatedById()==null)
+        {
+            throw new ResourceNotFoundException("Inable to find");
+
+        }
         User user = userRepository.findById(dto.getCreatedById())
                 .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
 
@@ -66,13 +70,16 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
-    @Scheduled(fixedRate = 60000) // Every 1 min
+    @Scheduled(fixedRate = 300000) // Every 5 min
     public void endInactiveAuctions() {
         List<Auction> activeAuctions = auctionRepository.findByActiveTrue();
         for (Auction auction : activeAuctions) {
             if (auction.getLastBidTime() != null &&
-                    Duration.between(auction.getLastBidTime(), LocalDateTime.now()).toMinutes() >= 2) {
+                    Duration.between(auction.getLastBidTime(), LocalDateTime.now()).toMinutes() >= 6)
+            {
+
                 auction.setActive(false);
+                auction.setCompleted(true);
                 auctionRepository.save(auction);
             }
         }
@@ -86,6 +93,10 @@ public class AuctionServiceImpl implements AuctionService {
 
         if (auction.isActive()) {
             throw new InvalidOperationException("Auction is already live");
+        }
+        if(auction.isCompleted())
+        {
+            throw new InvalidOperationException("Auction is already completed");
         }
 
         auction.setActive(true);

@@ -14,7 +14,8 @@ public class BidRequestDto
 {
 
     private Double amount;
+
     private Long userId;
-    @NotNull
+
     private Long auctionId;
 }

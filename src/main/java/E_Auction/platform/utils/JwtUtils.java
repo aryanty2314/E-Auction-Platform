@@ -29,11 +29,12 @@ public class JwtUtils
     }
 
 
-    public String generateToken(String email,String role)
+    public String generateToken(String email,String role,Long userId)
     {
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
+        claims.put("id",userId);
 
         return Jwts.builder()
                 .setSubject(email)
@@ -52,6 +53,11 @@ public class JwtUtils
     public String extractRole(String token)
     {
         return (String) extractClaims(token).get("role");
+    }
+
+    public Long extractId(String token)
+    {
+        return extractClaims(token).get("id", Long.class);
     }
 
 
