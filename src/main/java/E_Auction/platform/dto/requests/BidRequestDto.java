@@ -1,6 +1,7 @@
 package E_Auction.platform.dto.requests;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,12 +11,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @Builder
-public class BidRequestDto
-{
+public class BidRequestDto {
 
+    @NotNull(message = "Bid amount is required")
+    @Positive(message = "Bid amount must be positive")
     private Double amount;
 
+    // Make userId optional since we can get it from JWT
     private Long userId;
 
+    @NotNull(message = "Auction ID is required")
     private Long auctionId;
 }

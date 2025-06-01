@@ -53,57 +53,57 @@ function PlaceBid() {
   }, [auctionId, user?.token, showToast]); // Added showToast to dependencies
 
   const handleBid = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  
+  if (!auction || !user?.token) {
+    showToast('Cannot place bid. Auction or user data missing.', 'error');
+    return;
+  }
+  
+  const bidAmount = parseFloat(amount);
+  const currentPrice = auction.currentPrice || auction.startPrice;
+  
+  if (isNaN(bidAmount) || bidAmount <= 0) {
+    showToast('Please enter a valid bid amount.', 'error');
+    return;
+  }
+
+  if (bidAmount <= currentPrice) {
+    showToast(`Bid must be higher than current price of ₹${currentPrice}`, 'error');
+    return;
+  }
+
+  try {
+    setSubmitting(true);
+    const bidRequest = {
+      amount: bidAmount,
+      auctionId: parseInt(auctionId),
+      userId: user.id // Add this line - make sure user.id is available
+    };
+
+    await axios.post('http://localhost:8080/api/v1/bids', bidRequest, {
+      headers: { Authorization: `Bearer ${user.token}` }
+    });
+
+    showToast('✅ Bid placed successfully!', 'success');
     
-    if (!auction || !user?.token) {
-      showToast('Cannot place bid. Auction or user data missing.', 'error');
-      return;
-    }
+    setAuction(prev => ({ ...prev, currentPrice: bidAmount }));
+    setAmount((bidAmount + 1).toString());
     
-    const bidAmount = parseFloat(amount);
-    const currentPrice = auction.currentPrice || auction.startPrice;
+    setTimeout(() => {
+      navigate(`/live/${auctionId}`);
+    }, 1500);
     
-    if (isNaN(bidAmount) || bidAmount <= 0) {
-      showToast('Please enter a valid bid amount.', 'error');
-      return;
-    }
-
-    if (bidAmount <= currentPrice) {
-      showToast(`Bid must be higher than current price of ₹${currentPrice}`, 'error');
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      const bidRequest = {
-        amount: bidAmount,
-        auctionId: parseInt(auctionId)
-        // userId is typically inferred by the backend from the JWT token
-      };
-
-      await axios.post('http://localhost:8080/api/v1/bids', bidRequest, {
-        headers: { Authorization: `Bearer ${user.token}` }
-      });
-
-      showToast('✅ Bid placed successfully!', 'success');
-      
-      setAuction(prev => ({ ...prev, currentPrice: bidAmount }));
-      setAmount((bidAmount + 1).toString());
-      
-      setTimeout(() => {
-        navigate(`/live/${auctionId}`); // Navigate to the specific live auction page
-      }, 1500);
-      
-    } catch (error) {
-      console.error('Error placing bid:', error);
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.data?.error || 
-                          'Failed to place bid. Please try again.';
-      showToast(`❌ ${errorMessage}`, 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  } catch (error) {
+    console.error('Error placing bid:', error);
+    const errorMessage = error.response?.data?.message || 
+                        error.response?.data?.error || 
+                        'Failed to place bid. Please try again.';
+    showToast(`❌ ${errorMessage}`, 'error');
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const handleGoBack = () => {
     // Navigate to the specific live auction page or a general auctions page

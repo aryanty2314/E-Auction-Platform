@@ -11,6 +11,7 @@ import java.util.List;
 
 public interface BidService
 {
-BidResponseDto placeBid(BidRequestDto bidRequestDto) throws InvalidBidException, ResourceNotFoundException, UserNotFoundException;
+BidResponseDto placeBid(BidRequestDto bidRequestDto,String email) throws InvalidBidException, ResourceNotFoundException, UserNotFoundException;
+BidResponseDto placeBid(BidRequestDto bidRequestDto);
 List<BidResponseDto> getBidsForAuction(Long auctionId);
 }
