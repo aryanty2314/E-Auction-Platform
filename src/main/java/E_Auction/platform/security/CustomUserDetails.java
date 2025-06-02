@@ -9,15 +9,13 @@ import java.util.Collection;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class CustomUserDetails implements UserDetails
-{
+public class CustomUserDetails implements UserDetails {
 
     private final User user;
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities()
-    {
-        return List.of(() -> "ROLE_" +user.getRole().name());
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(() -> "ROLE_" + user.getRole().name());
     }
 
     @Override

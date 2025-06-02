@@ -6,7 +6,6 @@ import E_Auction.platform.exceptions.InvalidOperationException;
 import E_Auction.platform.repositories.RefreshTokenRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,8 +14,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class RefreshTokenService
-{
+public class RefreshTokenService {
 
     private final RefreshTokenRepository repository;
 
@@ -39,16 +37,14 @@ public class RefreshTokenService
         }
     }
 
-    public RefreshToken verifyToken(String token) throws InvalidOperationException
-    {
+    public RefreshToken verifyToken(String token) throws InvalidOperationException {
         return repository.findByToken(token)
-                .filter(rt->rt.getExpiryTime().isAfter(LocalDateTime.now()))
-                .orElseThrow(()->new InvalidOperationException("UNABLE TO VERIFY !!"));
+                .filter(rt -> rt.getExpiryTime().isAfter(LocalDateTime.now()))
+                .orElseThrow(() -> new InvalidOperationException("UNABLE TO VERIFY !!"));
     }
 
     @Transactional
-    public void deleteToken(User user)
-    {
+    public void deleteToken(User user) {
         repository.deleteByUser(user);
     }
 

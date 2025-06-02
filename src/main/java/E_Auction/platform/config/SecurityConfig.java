@@ -26,8 +26,6 @@ public class SecurityConfig
             "/api/v1/auth/**",
             "/api/v1/auction",
             "/api/v1/auction/{id}",
-            "/swagger-ui/**",
-            "/v3/api-docs/**",
             "/ws/**"
     };
 
@@ -45,6 +43,9 @@ public class SecurityConfig
     };
 
 
+
+    // Managing our endpoints in this method so that user can access the endpoints based on his role
+    //Also added our Cross-Origin endpoint so that only the chosen url can send us request
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception
     {

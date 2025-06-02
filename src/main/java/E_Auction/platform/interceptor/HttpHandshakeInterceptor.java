@@ -27,10 +27,10 @@ public class HttpHandshakeInterceptor implements HandshakeInterceptor {
             if (token != null && jwtUtils.validateToken(token)) {
                 String email = jwtUtils.extractEmail(token);
                 attributes.put("email", email);
-                return true; // Allow handshake
+                return true;
             }
         }
-        return true; // Changed from false to true
+        return true;
     }
 
     @Override
@@ -38,6 +38,5 @@ public class HttpHandshakeInterceptor implements HandshakeInterceptor {
                                ServerHttpResponse response,
                                WebSocketHandler wsHandler,
                                Exception exception) {
-        // Implementation can be empty
     }
 }

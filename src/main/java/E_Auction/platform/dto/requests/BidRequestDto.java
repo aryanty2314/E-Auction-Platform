@@ -17,7 +17,6 @@ public class BidRequestDto {
     @Positive(message = "Bid amount must be positive")
     private Double amount;
 
-    // Make userId optional since we can get it from JWT
     private Long userId;
 
     @NotNull(message = "Auction ID is required")

@@ -19,8 +19,7 @@ import java.time.LocalDateTime;
 
 @Controller
 @RequiredArgsConstructor
-public class BidSocketController
-{
+public class BidSocketController {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final AuctionRepository auctionRepository;
@@ -28,14 +27,12 @@ public class BidSocketController
     private final UserRepository userRepository;
 
     @MessageMapping("/bid")
-    public void handleBid(@Payload BidMessage message, Principal userPrincipal)
-    {
-    String email = userPrincipal.getName();
-    User user = userRepository.findByEmail(email).get();
+    public void handleBid(@Payload BidMessage message, Principal userPrincipal) {
+        String email = userPrincipal.getName();
+        User user = userRepository.findByEmail(email).get();
         Auction auction = auctionRepository.findById(message.getAuctionId()).get();
 
-        if (!auction.isActive() || message.getPrice() <= auction.getCurrentPrice())
-        {
+        if (!auction.isActive() || message.getPrice() <= auction.getCurrentPrice()) {
             return;
         }
         Bid bid = new Bid();

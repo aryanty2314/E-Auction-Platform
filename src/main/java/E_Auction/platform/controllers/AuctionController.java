@@ -14,25 +14,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController
 @RequestMapping(path = "/api/v1/auction")
 @RequiredArgsConstructor
-public class AuctionController
-{
+public class AuctionController {
 
     private final AuctionServiceImpl auctionServiceimpl;
     private final JwtUtils jwtUtils;
 
     @GetMapping("/all")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<List<AuctionResponseDto>> getAllAuctions()
-    {
+    public ResponseEntity<List<AuctionResponseDto>> getAllAuctions() {
         List<AuctionResponseDto> auctions = auctionServiceimpl.getAllAuctions();
-        if (auctions.isEmpty())
-        {
+        if (auctions.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(auctions, HttpStatus.OK);
@@ -40,8 +36,7 @@ public class AuctionController
 
     @GetMapping(path = "/{id}")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<AuctionResponseDto> getAuctionById(@PathVariable Long id)
-    {
+    public ResponseEntity<AuctionResponseDto> getAuctionById(@PathVariable Long id) {
         AuctionResponseDto auction = auctionServiceimpl.getAuctionById(id);
         return new ResponseEntity<>(auction, HttpStatus.OK);
     }
@@ -50,8 +45,7 @@ public class AuctionController
     @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
     public ResponseEntity<AuctionResponseDto> createAuction(
             @Valid @RequestBody AuctionRequestDto auctionRequestDto,
-            HttpServletRequest request)
-    {
+            HttpServletRequest request) {
         try {
             // Extract user ID from JWT token
             String token = extractTokenFromRequest(request);
@@ -63,8 +57,6 @@ public class AuctionController
             if (userId == null) {
                 return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
             }
-
-            // Set the createdById from the authenticated user
             auctionRequestDto.setCreatedById(userId);
 
             AuctionResponseDto auctionResponseDto = auctionServiceimpl.createAuction(auctionRequestDto);
@@ -89,4 +81,31 @@ public class AuctionController
         }
         return null;
     }
+
+    @GetMapping("/winner/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SELLER')")
+    public ResponseEntity<String> getWinner(@PathVariable Long id) {
+        String winner = auctionServiceimpl.getAuctionWinner(id);
+        return ResponseEntity.ok("🏆 Winner: " + winner);
+    }
+
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
+    public ResponseEntity<List<AuctionResponseDto>> getAuctionsByUser(@PathVariable Long userId) {
+        List<AuctionResponseDto> auctions = auctionServiceimpl.getAuctionsByUser(userId);
+        return ResponseEntity.ok(auctions);
+    }
+
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
+    public ResponseEntity<AuctionResponseDto> updateAuction(
+            @PathVariable Long id,
+            @Valid @RequestBody AuctionRequestDto dto) {
+
+        AuctionResponseDto updated = auctionServiceimpl.updateAuction(id, dto);
+        return ResponseEntity.ok(updated);
+    }
+
+
 }

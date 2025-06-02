@@ -1,7 +1,6 @@
 package E_Auction.platform.dto.webSocketResponse;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

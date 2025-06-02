@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class BidServiceImpl implements BidService {
@@ -63,7 +64,6 @@ public class BidServiceImpl implements BidService {
         return bidMapper.toDto(savedBid);
     }
 
-    // Keep the old method for backward compatibility
     @Override
     @SneakyThrows
     public BidResponseDto placeBid(BidRequestDto bidRequestDto) {

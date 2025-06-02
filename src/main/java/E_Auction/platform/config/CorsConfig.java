@@ -7,6 +7,8 @@ import org.springframework.web.servlet.config.annotation.*;
 @Configuration
 public class CorsConfig {
 
+
+    // This is our CorsConfig Class  or (CrossOrigin class ) which handles all the access endpoints which can access.
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {

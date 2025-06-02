@@ -1,14 +1,13 @@
 package E_Auction.platform.services.securityService;
 
-import E_Auction.platform.entities.User;
-import E_Auction.platform.exceptions.InvalidOperationException;
-import E_Auction.platform.exceptions.UserNotFoundException;
-import E_Auction.platform.mappers.UserMapper;
-import E_Auction.platform.repositories.UserRepository;
-import E_Auction.platform.roles.role;
 import E_Auction.platform.dto.securityRequest.LoginRequest;
 import E_Auction.platform.dto.securityRequest.RegisterRequest;
 import E_Auction.platform.dto.securityResponse.AuthResponse;
+import E_Auction.platform.entities.User;
+import E_Auction.platform.exceptions.InvalidOperationException;
+import E_Auction.platform.exceptions.UserNotFoundException;
+import E_Auction.platform.repositories.UserRepository;
+import E_Auction.platform.roles.role;
 import E_Auction.platform.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -19,8 +18,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService
-{
+public class AuthService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -29,10 +27,8 @@ public class AuthService
     private final RefreshTokenService refreshTokenService;
 
 
-    public AuthResponse register(RegisterRequest register) throws InvalidOperationException
-    {
-        if (register.getRole() == role.ADMIN)
-        {
+    public AuthResponse register(RegisterRequest register) throws InvalidOperationException {
+        if (register.getRole() == role.ADMIN) {
             throw new InvalidOperationException("Unable to register as ADMIN");
         }
 
@@ -48,7 +44,7 @@ public class AuthService
                 .build();
 
         User savedUser = userRepository.save(user);
-        String jwtAccessToken = jwtUtils.generateToken(user.getEmail(), user.getRole().toString(),user.getId());
+        String jwtAccessToken = jwtUtils.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
         String jwtRefreshToken = refreshTokenService.createToken(user).getToken();
 
         return AuthResponse.builder()
@@ -60,8 +56,7 @@ public class AuthService
     }
 
     @SneakyThrows
-    public AuthResponse login(LoginRequest login)
-    {
+    public AuthResponse login(LoginRequest login) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         login.getEmail(),
@@ -72,7 +67,7 @@ public class AuthService
         User user = userRepository.findByEmail(login.getEmail())
                 .orElseThrow(() -> new UserNotFoundException("Unable to find the user"));
 
-        String jwtAccessToken = jwtUtils.generateToken(user.getEmail(), user.getRole().toString(),user.getId());
+        String jwtAccessToken = jwtUtils.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
         String jwtRefreshToken = refreshTokenService.createToken(user).getToken();
 
         return AuthResponse.builder()

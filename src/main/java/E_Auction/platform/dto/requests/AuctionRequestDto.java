@@ -27,7 +27,7 @@ public class AuctionRequestDto
     @DecimalMin(value = "0.01", message = "Start price must be greater than 0")
     private Double startPrice;
 
-    // This will be set from JWT token in the controller
+
     private Long createdById;
 
     private String imageUrl;

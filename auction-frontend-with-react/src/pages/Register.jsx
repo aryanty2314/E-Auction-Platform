@@ -10,7 +10,7 @@ function Register() {
     username: '',
     email: '',
     password: '',
-    role: 'BIDDER' // Default role
+    role: 'BIDDER' 
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -19,7 +19,6 @@ function Register() {
 
   useEffect(() => {
     if (isAuthenticated()) {
-      // showToast('You are already registered and logged in!', 'info');
       const userRole = getUserRole();
       const targetPath = userRole === 'ADMIN' ? '/admin' : userRole === 'SELLER' ? '/seller' : '/auctions';
       navigate(targetPath, { replace: true });
@@ -35,32 +34,37 @@ function Register() {
     setLoading(true);
     
     if (form.password.length < 6) {
-        showToast('Password must be at least 6 characters long.', 'error');
+        showToast('🔑 Password must be at least 6 characters.', 'error');
         setLoading(false);
         return;
     }
-    if (!form.username.match(/^[a-zA-Z0-9_]+$/)) {
-        showToast('Username can only contain letters, numbers, and underscores.', 'error');
+    if (!form.username.match(/^[a-zA-Z0-9_]{3,20}$/)) {
+        showToast('👤 Username must be 3-20 characters (letters, numbers, underscores).', 'error');
         setLoading(false);
         return;
     }
-
+    if (!/^\S+@\S+\.\S+$/.test(form.email)) {
+        showToast('📧 Please enter a valid email address.', 'error');
+        setLoading(false);
+        return;
+    }
 
     try {
       const res = await axios.post('http://localhost:8080/api/v1/auth/register', form);
 
       if (res.data && res.data.token && res.data.username && res.data.role) {
-        login({ // Sets user in context and localStorage
+        login({ 
           token: res.data.token,
           username: res.data.username,
-          role: res.data.role
+          role: res.data.role,
+          id: res.data.userId // Assuming backend sends userId
         });
 
-        showToast('🎉 Registration successful! Welcome to Bidzy!', 'success');
+        showToast('🎉 Registration successful! Welcome aboard!', 'success');
         setTimeout(() => {
             const targetPath = res.data.role === 'SELLER' ? '/seller' : '/auctions';
             navigate(targetPath, { replace: true });
-        }, 1000);
+        }, 1500);
       } else {
         throw new Error("Incomplete registration data from server.");
       }
@@ -68,7 +72,7 @@ function Register() {
       const errorMessage = err.response?.data?.message || 
                            (err.response?.data?.errors ? JSON.stringify(err.response.data.errors) : null) ||
                            err.message ||
-                           'Registration failed. Please ensure all fields are correct and try again.';
+                           '⚠️ Registration failed. Please check details and try again.';
       showToast(errorMessage, 'error');
       console.error("Registration error:", err.response?.data || err);
     } finally {
@@ -78,33 +82,35 @@ function Register() {
 
   if (isAuthenticated()) {
       return (
-          <div className="min-h-screen bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-600 flex items-center justify-center px-4">
+          <div className="min-h-screen bg-black flex items-center justify-center px-4">
               <div className="text-center text-white">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                <p className="text-xl">Already registered, redirecting...</p>
+                <p className="text-xl">Redirecting...</p>
               </div>
           </div>
       );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-600 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-black flex items-center justify-center px-4 py-12">
       {toasts.map(toast => (
         <Toast
           key={toast.id}
-          id={toast.id}
+          id={toast.id} // Ensure ID is passed if your Toast component uses it
           message={toast.message}
           type={toast.type}
           onClose={() => removeToast(toast.id)}
         />
       ))}
       
-      <div className="bg-white p-8 sm:p-10 rounded-xl shadow-2xl w-full max-w-md border border-gray-200/50">
-        <h2 className="text-3xl sm:text-4xl font-bold mb-8 text-center text-gray-800">Join Bidzy Today!</h2>
+      <div className="bg-white p-8 sm:p-10 rounded-xl shadow-2xl w-full max-w-md border border-gray-300">
+        <h2 className="text-3xl sm:text-4xl font-bold mb-8 text-center text-black">
+          🚀 Join Bidzy Today!
+        </h2>
         
         <form onSubmit={handleRegister} className="space-y-6">
           <div>
-            <label htmlFor="usernameReg" className="block text-gray-700 text-sm font-semibold mb-2">Username</label>
+            <label htmlFor="usernameReg" className="block text-gray-700 text-sm font-semibold mb-1">👤 Username</label>
             <input 
               id="usernameReg"
               name="username" 
@@ -112,16 +118,14 @@ function Register() {
               onChange={handleChange} 
               required 
               disabled={loading}
-              className="w-full px-4 py-3.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-60 text-gray-700 placeholder-gray-400 text-base"
+              className="w-full px-4 py-3 text-black bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all disabled:opacity-60 placeholder-gray-500"
               placeholder="Choose a unique username"
               autoComplete="username"
-              pattern="^[a-zA-Z0-9_]{3,20}$"
-              title="Username must be 3-20 characters and can include letters, numbers, and underscores."
             />
           </div>
           
           <div>
-            <label htmlFor="emailReg" className="block text-gray-700 text-sm font-semibold mb-2">Email Address</label>
+            <label htmlFor="emailReg" className="block text-gray-700 text-sm font-semibold mb-1">📧 Email Address</label>
             <input 
               id="emailReg"
               type="email" 
@@ -130,14 +134,14 @@ function Register() {
               onChange={handleChange} 
               required 
               disabled={loading}
-              className="w-full px-4 py-3.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-60 text-gray-700 placeholder-gray-400 text-base"
+              className="w-full px-4 py-3 text-black bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all disabled:opacity-60 placeholder-gray-500"
               placeholder="you@example.com"
               autoComplete="email"
             />
           </div>
           
           <div>
-            <label htmlFor="passwordReg" className="block text-gray-700 text-sm font-semibold mb-2">Password</label>
+            <label htmlFor="passwordReg" className="block text-gray-700 text-sm font-semibold mb-1">🔑 Password</label>
             <input 
               id="passwordReg"
               type="password" 
@@ -147,31 +151,31 @@ function Register() {
               required 
               minLength="6"
               disabled={loading}
-              className="w-full px-4 py-3.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-60 text-gray-700 placeholder-gray-400 text-base"
-              placeholder="Create a strong password (min. 6 characters)"
+              className="w-full px-4 py-3 text-black bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all disabled:opacity-60 placeholder-gray-500"
+              placeholder="Min. 6 characters"
               autoComplete="new-password"
             />
           </div>
           
           <div>
-            <label htmlFor="roleReg" className="block text-gray-700 text-sm font-semibold mb-2">I want to primarily:</label>
+            <label htmlFor="roleReg" className="block text-gray-700 text-sm font-semibold mb-1">🎯 I want to primarily:</label>
             <select 
               id="roleReg"
               name="role" 
               value={form.role} 
               onChange={handleChange} 
               disabled={loading}
-              className="w-full px-4 py-3.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-60 bg-white text-gray-700 text-base"
+              className="w-full px-4 py-3 text-black bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all disabled:opacity-60"
             >
-              <option value="BIDDER">Bid on auctions</option>
-              <option value="SELLER">Sell items in auctions</option>
+              <option value="BIDDER">Bid on auctions 🙋</option>
+              <option value="SELLER">Sell items in auctions 💼</option>
             </select>
           </div>
           
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3.5 rounded-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all disabled:opacity-50 font-semibold text-lg flex items-center justify-center shadow-md hover:shadow-lg"
+            className="w-full bg-blue-600 text-white py-3.5 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 font-semibold text-lg flex items-center justify-center shadow-md hover:shadow-lg"
           >
              {loading ? (
               <>
@@ -181,16 +185,16 @@ function Register() {
                 </svg>
                 Creating Account...
               </>
-            ) : 'Create Account'}
+            ) : '✨ Create Account'}
           </button>
         </form>
         
         <div className="mt-8 text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-700">
             Already have an account?{' '}
             <Link 
               to="/login"
-              className="font-semibold text-purple-600 hover:text-purple-800 hover:underline transition-colors"
+              className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
             >
               Sign in here
             </Link>

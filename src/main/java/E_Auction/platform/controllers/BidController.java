@@ -6,7 +6,6 @@ import E_Auction.platform.entities.User;
 import E_Auction.platform.exceptions.InvalidBidException;
 import E_Auction.platform.exceptions.ResourceNotFoundException;
 import E_Auction.platform.exceptions.UserNotFoundException;
-import E_Auction.platform.repositories.BidRepository;
 import E_Auction.platform.repositories.UserRepository;
 import E_Auction.platform.services.impl.BidServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.WebRequest;
 
 import java.security.Principal;
 import java.util.List;
@@ -33,12 +31,11 @@ public class BidController {
             @RequestBody BidRequestDto bidRequestDto,
             Principal principal) throws UserNotFoundException, InvalidBidException, ResourceNotFoundException {
 
-        // Get user from JWT token instead of request body
         String email = principal.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User Not Found"));
 
-        // Set the userId in the request DTO
+
         bidRequestDto.setUserId(user.getId());
 
         BidResponseDto bidResponseDto = bidService.placeBid(bidRequestDto, email);
