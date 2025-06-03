@@ -35,7 +35,7 @@ public class AuctionServiceImpl implements AuctionService {
     @SneakyThrows
     public AuctionResponseDto createAuction(AuctionRequestDto dto) {
         if (dto.getCreatedById() == null) {
-            throw new ResourceNotFoundException("Inable to find");
+            throw new ResourceNotFoundException("Unable to find");
 
         }
         User user = userRepository.findById(dto.getCreatedById())
@@ -49,7 +49,7 @@ public class AuctionServiceImpl implements AuctionService {
         auction.setStartPrice(dto.getStartPrice());
         auction.setCurrentPrice(dto.getStartPrice());
         auction.setLastBidTime(LocalDateTime.now());
-        auction.setActive(false); // Default inactive
+        auction.setActive(false);
 
         return auctionMapper.toDto(auctionRepository.save(auction));
     }

@@ -14,12 +14,27 @@ function SellerDashboard() {
   const [editAuction, setEditAuction] = useState(null);
   const navigate = useNavigate();
 
+  // Helper function to validate user authentication
+  const validateUserAuth = () => {
+    if (!user || !user.id || !user.token) {
+      console.error('User authentication invalid:', { user });
+      showToast('🔒 Authentication required. Please log in again.', 'error');
+      navigate('/login');
+      return false;
+    }
+    return true;
+  };
+
   const fetchAuctionsBySeller = async () => {
-    if (!user?.token) {
-      showToast('🔒 Authentication required.', 'error');
+    // Check if user and user.id exist
+    if (!user || !user.id || !user.token) {
+      console.error('User not properly authenticated:', { user });
+      showToast('🔒 Authentication required. Please log in again.', 'error');
       setLoading(false);
+      navigate('/login'); // Redirect to login if user data is missing
       return;
     }
+
     setLoading(true);
     try {
       const res = await axios.get(
@@ -37,6 +52,9 @@ function SellerDashboard() {
       if (err.response?.status === 403) {
         showToast("🚫 You are not authorized to view this page.", 'error');
         navigate('/');
+      } else if (err.response?.status === 401) {
+        showToast("🔒 Session expired. Please log in again.", 'error');
+        navigate('/login');
       } else {
         showToast(errorMessage, 'error');
       }
@@ -46,39 +64,48 @@ function SellerDashboard() {
   };
 
   useEffect(() => {
-    fetchAuctionsBySeller();
-  }, [user?.token]);
+    // Only fetch auctions if user is properly authenticated
+    if (user && user.id && user.token) {
+      fetchAuctionsBySeller();
+    } else if (user === null) {
+      // User is not authenticated at all
+      setLoading(false);
+      navigate('/login');
+    }
+    // If user is still loading (undefined), wait for auth context to load
+  }, [user?.token, user?.id]);
 
   const handleActivate = async (id) => {
-  if (!user?.token) {
-    showToast('🔒 Authentication required.', 'error');
-    return;
-  }
-  try {
-    const response = await axios.post(
-      `http://localhost:8080/api/v1/auction/activate/${id}`,
-      {},
-      { headers: { Authorization: `Bearer ${user.token}` } }
-    );
+    if (!validateUserAuth()) return;
     
-    // Update the auction in state with the response data
-    setAuctions(prevAuctions => prevAuctions.map(auc => 
-      auc.id === id ? { ...response.data, winnerName: null } : auc
-    ));
-    
-    showToast(`✅ Auction activated! It's now LIVE!`, 'success');
-  } catch (err) {
-    const errorMessage = err.response?.data?.message || `⚠️ Activation failed.`;
-    showToast(errorMessage, 'error');
-    console.error("Activation error:", err);
-  }
-};
+    try {
+      const response = await axios.post(
+        `http://localhost:8080/api/v1/auction/activate/${id}`,
+        {},
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
+      
+      // Update the auction in state with the response data
+      setAuctions(prevAuctions => prevAuctions.map(auc => 
+        auc.id === id ? { ...response.data, winnerName: null } : auc
+      ));
+      
+      showToast(`✅ Auction activated! It's now LIVE!`, 'success');
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || `⚠️ Activation failed.`;
+      if (err.response?.status === 401) {
+        showToast("🔒 Session expired. Please log in again.", 'error');
+        navigate('/login');
+      } else {
+        showToast(errorMessage, 'error');
+      }
+      console.error("Activation error:", err);
+    }
+  };
 
   const handleDeleteAuction = async (auctionId) => {
-    if (!user?.token) {
-      showToast('🔒 Authentication required.', 'error');
-      return;
-    }
+    if (!validateUserAuth()) return;
+    
     try {
       await axios.delete(`http://localhost:8080/api/v1/auction/${auctionId}`, { 
         headers: { Authorization: `Bearer ${user.token}` }
@@ -88,16 +115,19 @@ function SellerDashboard() {
       setDeleteConfirm({ id: null, title: '' });
     } catch (err) {
       const errorMessage = err.response?.data?.message || '❌ Failed to delete auction.';
-      showToast(errorMessage, 'error');
+      if (err.response?.status === 401) {
+        showToast("🔒 Session expired. Please log in again.", 'error');
+        navigate('/login');
+      } else {
+        showToast(errorMessage, 'error');
+      }
       console.error("Error deleting auction:", err);
     }
   };
 
   const handleUpdateAuction = async (updatedData) => {
-    if (!user?.token) {
-      showToast('🔒 Authentication required.', 'error');
-      return false;
-    }
+    if (!validateUserAuth()) return false;
+    
     try {
       const res = await axios.put(
         `http://localhost:8080/api/v1/auction/${editAuction.id}`,
@@ -114,13 +144,20 @@ function SellerDashboard() {
       return true;
     } catch (err) {
       const errorMessage = err.response?.data?.message || '⚠️ Failed to update auction.';
-      showToast(errorMessage, 'error');
+      if (err.response?.status === 401) {
+        showToast("🔒 Session expired. Please log in again.", 'error');
+        navigate('/login');
+      } else {
+        showToast(errorMessage, 'error');
+      }
       console.error("Error updating auction:", err);
       return false;
     }
   };
 
   const handleRevealWinner = async (auctionId) => {
+    if (!validateUserAuth()) return;
+    
     try {
       const response = await axios.get(
         `http://localhost:8080/api/v1/auction/winner/${auctionId}`,
@@ -139,17 +176,23 @@ function SellerDashboard() {
       }
     } catch (err) {
       const message = err.response?.data || '⚠️ Failed to get winner information.';
-      showToast(message, 'error');
-      setAuctions(prevAuctions => 
-        prevAuctions.map(auction => 
-          auction.id === auctionId ? { ...auction, winnerName: "Error fetching info" } : auction
-        )
-      );
+      if (err.response?.status === 401) {
+        showToast("🔒 Session expired. Please log in again.", 'error');
+        navigate('/login');
+      } else {
+        showToast(message, 'error');
+        setAuctions(prevAuctions => 
+          prevAuctions.map(auction => 
+            auction.id === auctionId ? { ...auction, winnerName: "Error fetching info" } : auction
+          )
+        );
+      }
       console.error("Error getting winner:", err);
     }
   };
 
-  if (loading) {
+  // Show loading spinner while user authentication is being determined
+  if (loading || user === undefined) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-white">
         <div className="text-center">
@@ -158,6 +201,11 @@ function SellerDashboard() {
         </div>
       </div>
     );
+  }
+
+  // If user is null (not authenticated), the useEffect will redirect to login
+  if (!user) {
+    return null;
   }
 
   return (
@@ -331,7 +379,7 @@ function SellerDashboard() {
                     type="text"
                     name="title"
                     defaultValue={editAuction.title}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"
+                    className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -340,7 +388,7 @@ function SellerDashboard() {
                   <textarea
                     name="description"
                     defaultValue={editAuction.description}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"
+                    className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     rows="3"
                   />
                 </div>
@@ -350,7 +398,7 @@ function SellerDashboard() {
                     type="number"
                     name="startPrice"
                     defaultValue={editAuction.startPrice}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"
+                    className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     min="0"
                     step="0.01"
                     required
@@ -362,7 +410,7 @@ function SellerDashboard() {
                     type="url"
                     name="imageUrl"
                     defaultValue={editAuction.imageUrl || ''}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white"
+                    className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="https://example.com/image.jpg"
                   />
                 </div>

@@ -91,9 +91,22 @@ public class AuctionController {
 
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
-    public ResponseEntity<List<AuctionResponseDto>> getAuctionsByUser(@PathVariable Long userId) {
-        List<AuctionResponseDto> auctions = auctionServiceimpl.getAuctionsByUser(userId);
-        return ResponseEntity.ok(auctions);
+    public ResponseEntity<?> getAuctionsByUser(@PathVariable Long userId) {
+        try {
+            if (userId == null || userId <= 0) {
+                return ResponseEntity.badRequest()
+                        .body("Invalid user ID provided");
+            }
+
+            List<AuctionResponseDto> auctions = auctionServiceimpl.getAuctionsByUser(userId);
+            return ResponseEntity.ok(auctions);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest()
+                    .body("User ID must be a valid number");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving auctions: " + e.getMessage());
+        }
     }
 
 

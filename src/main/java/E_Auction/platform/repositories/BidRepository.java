@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BidRepository extends JpaRepository<Bid, Long> {
+
     List<Bid> findByAuctionIdOrderByTimestampDesc(Long auctionId);
 
     @Query("SELECT b FROM Bid b WHERE b.auction.id = :auctionId ORDER BY b.amount DESC LIMIT 1")
