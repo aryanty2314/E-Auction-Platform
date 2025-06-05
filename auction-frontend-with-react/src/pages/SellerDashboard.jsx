@@ -78,20 +78,19 @@ function SellerDashboard() {
   const handleActivate = async (id) => {
     if (!validateUserAuth()) return;
     
-    try {
-      const response = await axios.post(
-        `http://localhost:8080/api/v1/auction/activate/${id}`,
-        {},
-        { headers: { Authorization: `Bearer ${user.token}` } }
-      );
-      
-      // Update the auction in state with the response data
-      setAuctions(prevAuctions => prevAuctions.map(auc => 
-        auc.id === id ? { ...response.data, winnerName: null } : auc
-      ));
-      
-      showToast(`✅ Auction activated! It's now LIVE!`, 'success');
-    } catch (err) {
+    // SellerDashboard.jsx - handleActivate (Optimistic Update)
+try {
+  await axios.post( // response is not used for object data anymore
+    `http://localhost:8080/api/v1/auction/activate/${id}`,
+    {},
+    { headers: { Authorization: `Bearer ${user.token}` } }
+  );
+
+  setAuctions(prevAuctions => prevAuctions.map(auc =>
+    auc.id === id ? { ...auc, active: true, winnerName: null } : auc // Set active to true
+  ));
+  showToast(`✅ Auction activated! It's now LIVE!`, 'success');
+} catch (err) { 
       const errorMessage = err.response?.data?.message || `⚠️ Activation failed.`;
       if (err.response?.status === 401) {
         showToast("🔒 Session expired. Please log in again.", 'error');

@@ -68,8 +68,7 @@ public class AuctionController {
 
     @PostMapping(path = "/activate/{id}")
     @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
-    public ResponseEntity<String> activateAuction(@PathVariable Long id) throws InvalidOperationException, ResourceNotFoundException {
-
+    public ResponseEntity<String> activateAuction(@PathVariable Long id) {
         auctionServiceimpl.activateAuction(id);
         return new ResponseEntity<>("Auction is now Live ! ", HttpStatus.OK);
     }

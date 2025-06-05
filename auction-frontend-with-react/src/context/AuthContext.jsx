@@ -19,6 +19,7 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       const role = localStorage.getItem('role');
       const username = localStorage.getItem('username');
+      const id = localStorage.getItem('id');
       if (token && role && username) { // Ensure all parts are present
         setUser({ token, role, username });
       } else {
@@ -26,6 +27,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
         localStorage.removeItem('username');
+
         setUser(null);
       }
     } catch (error) {
