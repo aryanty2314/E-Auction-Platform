@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
         localStorage.removeItem('username');
-
+        localStorage.removeItem('id');
         setUser(null);
       }
     } catch (error) {
@@ -41,10 +41,12 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', userData.token);
       localStorage.setItem('role', userData.role);
       localStorage.setItem('username', userData.username);
+      localStorage.setItem('id',userData.id)
       setUser({
         token: userData.token,
         role: userData.role,
-        username: userData.username
+        username: userData.username,
+        id:userData.id
       });
     } else {
       console.error("Login attempt with incomplete userData:", userData);
@@ -55,11 +57,9 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
-    localStorage.removeItem('username');
-    setUser(null);
-    // Forcing a full reload can sometimes help clear any residual state in complex apps,
-    // though usually navigating to /login and relying on React's state updates is preferred.
-    // window.location.href = '/login'; // Or navigate('/login') if useNavigate is available here
+    localStorage.removeItem('username'); 
+    localStorage.removeItem('id'); 
+     setUser(null);
   }, []);
 
   const isAuthenticated = useCallback(() => !!user && !!user.token, [user]);

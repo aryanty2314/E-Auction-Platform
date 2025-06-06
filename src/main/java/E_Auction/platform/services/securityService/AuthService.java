@@ -50,6 +50,7 @@ public class AuthService {
         return AuthResponse.builder()
                 .token(jwtAccessToken)
                 .refreshToken(jwtRefreshToken)
+                .id(user.getId())
                 .username(savedUser.getUsername())
                 .role(savedUser.getRole())
                 .build();
@@ -74,6 +75,7 @@ public class AuthService {
                 .token(jwtAccessToken)
                 .refreshToken(jwtRefreshToken)
                 .username(user.getUsername())
+                .id(user.getId())
                 .role(user.getRole())
                 .build();
     }
